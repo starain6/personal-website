@@ -1,0 +1,24 @@
+# Backups
+index_backup_*.html
+
+# Videos (too large for git)
+*.mp4
+*.mov
+*.avi
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# WorkBuddy internal
+.workbuddy/
+
+# Temp files
+*.tmp
+*.swp
+*~
