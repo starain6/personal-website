@@ -475,12 +475,71 @@
     }
 
     /* ══════════════════════════════════
-       EXPERIENCE — Horizontal Card Grid
+       EXPERIENCE — Left/Right Layout
+       左：标题（sticky） / 右：卡片垂直堆叠
     ══════════════════════════════════ */
-    .exp-list {
+    .exp-layout {
       display: grid;
-      grid-template-columns: 1.2fr 1fr 1fr;
-      gap: 2px;
+      grid-template-columns: 0.85fr 1.15fr;
+      gap: 72px;
+      align-items: start;
+    }
+    #experience .section-header {
+      position: sticky;
+      top: 120px;
+      margin-bottom: 0;
+    }
+    /* 02 编号 — 从全局 fixed 改为此栏 static 装饰数字 */
+    #experience .section-num {
+      position: static;
+      transform: none;
+      top: auto;
+      left: auto;
+      z-index: 1;
+      margin-bottom: 28px;
+      font-size: clamp(72px, 7vw, 110px);
+      line-height: 0.82;
+    }
+    /* 隐藏标题自带斜杠 */
+    #experience .section-title::after {
+      content: none;
+    }
+    /* 左栏标题字号与全局一致 */
+    #experience .section-label {
+      font-size: 24px;
+      margin-bottom: -10px;
+    }
+    #experience .section-title {
+      font-size: clamp(35px, 5vw, 70px);
+      line-height: 1.05;
+      margin-top: 0;
+    }
+    /* 横线装饰元素 */
+    #experience .title-deco-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 20px;
+    }
+    #experience .tdl {
+      display: block;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(72, 47, 122, 0.95) 0%, rgba(72, 47, 122, 0.45) 60%, transparent 100%);
+    }
+    #experience .tdl-1 {
+      width: 90px;
+    }
+    #experience .tdl-2 {
+      width: 44px;
+      margin-top: 0;
+    }
+    #experience .section-header .section-titles {
+      margin-top: 0;
+    }
+    .exp-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
     .exp-item {
@@ -651,6 +710,17 @@
       border-color: rgba(255, 255, 255, 0.4);
       color: rgba(255, 255, 255, 0.8);
       background: rgba(255, 255, 255, 0.07);
+    }
+    /* GSAP 接管入场 — 禁用 CSS 过渡冲突 */
+    .exp-item.exp-gsap {
+      transition: none;
+      opacity: 1;
+      transform: none;
+    }
+    .edu-item.edu-gsap {
+      transition: none;
+      opacity: 1;
+      transform: none;
     }
 
     /* ══════════════════════════════════
@@ -978,20 +1048,79 @@
     }
 
     /* ══════════════════════════════════
-       EDUCATION — Card Horizontal Timeline
+       EDUCATION — Header Right Aligned + Left/Right Layout
+       标题在右 / 两张学校卡片在左
     ══════════════════════════════════ */
+    .edu-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 72px;
+      align-items: start;
+    }
+    #education .section-header {
+      grid-column: 2;
+      grid-row: 1;
+      text-align: right;
+      align-items: flex-end;
+      position: sticky;
+      top: 120px;
+      margin-bottom: 0;
+    }
+    .edu-list {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    /* section-num 默认 fixed 居中，在 education 区域改为右对齐 static */
+    #education .section-num {
+      position: static;
+      transform: none;
+      top: auto;
+      left: auto;
+      right: auto;
+      z-index: 1;
+      font-size: clamp(72px, 7vw, 110px);
+      line-height: 0.82;
+      margin-bottom: 28px;
+    }
+    #education .section-title::after {
+      content: none;
+    }
+    #education .section-label {
+      font-size: 24px;
+      margin-bottom: -10px;
+    }
+    #education .section-title {
+      font-size: clamp(35px, 5vw, 70px);
+      line-height: 1.05;
+    }
+    /* 右侧装饰横线（右对齐） */
+    #education .title-deco-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 20px;
+      align-items: flex-end;
+    }
+    #education .tdl {
+      display: block;
+      height: 1px;
+      background: linear-gradient(270deg, rgba(72, 47, 122, 0.95) 0%, rgba(72, 47, 122, 0.45) 60%, transparent 100%);
+    }
+    #education .tdl-1 { width: 90px; }
+    #education .tdl-2 { width: 44px; }
+
     .edu-list {
       position: relative;
       display: flex;
-      align-items: stretch;
-      gap: 24px;
-      margin-top: 48px;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 0;
     }
     /* 横向轴线（穿过卡片中心） — 已隐藏 */
 
     .edu-item {
       position: relative;
-      flex: 1;
+      flex: 1 1 auto;
       min-width: 0;
       padding: 28px 24px;
       background: transparent;
@@ -1035,19 +1164,18 @@
     .edu-item:hover::after {
       opacity: 1;
     }
-    /* 左侧时间轴圆点 */
+    /* 左侧时间轴圆点 — 改为卡片上方小标记（垂直堆叠布局） */
     .edu-item::before {
       content: '';
       position: absolute;
-      top: 50%;
-      left: -16px;
-      width: 11px;
-      height: 11px;
+      top: -6px;
+      left: 24px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       background: var(--bg-2);
-      border: 2.5px solid rgba(255, 255, 255, 0.5);
+      border: 2px solid rgba(255, 255, 255, 0.5);
       box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
-      transform: translateY(-50%);
       transition: all 0.3s ease;
       z-index: 2;
     }
@@ -1251,12 +1379,32 @@
       transform: translateY(0);
     }
 
+    /* ─── Section Title / Label 向上浮现动画 ─── */
+    .section-title,
+    .section-label {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 1.6s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    /* 副标题先动（延迟短），主标题后动（延迟长） */
+    .section-label.reveal-up {
+      opacity: 1;
+      transform: translateY(0);
+      transition-delay: 0s;
+    }
+    .section-title.reveal-up {
+      opacity: 1;
+      transform: translateY(0);
+      transition-delay: 0.15s;
+    }
+
     /* ══════════════════════════════════
        RESPONSIVE
     ══════════════════════════════════ */
     @media (max-width: 1280px) {
-      .exp-list { grid-template-columns: 1.2fr 1fr 1fr; }
-      .edu-list { flex-direction: column; }
+      .exp-layout { gap: 48px; }
+      .edu-layout { gap: 48px; }
     }
 
     @media (max-width: 900px) {
@@ -1264,6 +1412,18 @@
       nav { padding: 0 28px; }
       section { padding: 80px 0; }
       .section-header { margin-bottom: 48px; }
+      .exp-layout { grid-template-columns: 1fr; gap: 40px; }
+      #experience .section-header { position: static; margin-bottom: 48px; }
+      #experience .section-num { position: fixed; top: calc(50% - 10px); left: 0; z-index: 0; transform: translateY(-50%); font-size: clamp(80px, 10vw, 140px); line-height: 0.85; margin-bottom: 0; }
+      #experience .section-title { font-size: clamp(35px, 5vw, 70px); }
+      #experience .section-label { font-size: 24px; margin-bottom: -10px; }
+      #experience .section-title::after { content: '/'; }
+      #education .section-header { text-align: left; align-items: flex-start; position: static; margin-bottom: 48px; }
+      #education .section-num { font-size: clamp(80px, 10vw, 140px); line-height: 0.85; margin-bottom: 0; }
+      #education .section-title::after { content: '/'; }
+      #education .title-deco-lines { align-items: flex-start; }
+      #education .tdl { background: linear-gradient(90deg, rgba(72, 47, 122, 0.95) 0%, rgba(72, 47, 122, 0.45) 60%, transparent 100%); }
+      .edu-layout { grid-template-columns: 1fr; gap: 40px; }
     }
 
     @media (max-width: 640px) {
@@ -1271,7 +1431,7 @@
       nav { padding: 0 20px; }
       nav .nav-links { gap: 20px; }
       .nav-links a { font-size: 10px; }
-      .exp-list { grid-template-columns: 1fr; }
+      .exp-layout { gap: 32px; }
       section { padding: 60px 0; }
     }
   </style>
@@ -1318,11 +1478,16 @@
     <!-- ══ EXPERIENCE ══ -->
     <section id="experience">
       <div class="container">
+        <div class="exp-layout">
         <div class="section-header reveal">
           <div class="section-num" aria-hidden="true">02</div>
           <div class="section-titles">
             <div class="section-label">Experience</div>
-            <h2 class="section-title">Work Experience</h2>
+            <h2 class="section-title">Work<br>Experience</h2>
+            <div class="title-deco-lines" aria-hidden="true">
+              <span class="tdl tdl-1"></span>
+              <span class="tdl tdl-2"></span>
+            </div>
           </div>
         </div>
 
@@ -1384,6 +1549,7 @@
             </div>
           </div>
       </div>
+        </div>
     </section>
 
     <!-- ══ PROJECTS ══ -->
@@ -1409,11 +1575,16 @@
     <!-- ══ EDUCATION ══ -->
     <section id="education">
       <div class="container">
+        <div class="edu-layout">
         <div class="section-header reveal">
           <div class="section-num" aria-hidden="true">04</div>
           <div class="section-titles">
             <div class="section-label">The Education</div>
-            <h2 class="section-title">The Education</h2>
+            <h2 class="section-title">The<br>Education</h2>
+            <div class="title-deco-lines" aria-hidden="true">
+              <span class="tdl tdl-1"></span>
+              <span class="tdl tdl-2"></span>
+            </div>
           </div>
         </div>
 
@@ -1436,6 +1607,7 @@
               参与完成"RCO 废气处理设备"和"儿童防溺水书包"两项校企合作项目设计；参与国家重点研发计划项目——双梯度钻井系统关键技术研究及天然气水合物钻采虚拟仿真项目。
             </p>
           </div>
+        </div>
         </div>
       </div>
     </section>
@@ -1494,11 +1666,15 @@
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
   <script>
     /* ─── Reveal on Scroll ─── */
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
+          // exp-item / edu-item 由 GSAP 单独处理，跳过 CSS reveal
+          if (entry.target.classList.contains('exp-item')) return;
+          if (entry.target.classList.contains('edu-item')) return;
           entry.target.classList.add('visible');
         }
       });
@@ -1506,6 +1682,138 @@
 
     document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => {
       revealObserver.observe(el);
+    });
+
+    /* ─── GSAP: 工作经历卡片逐元素入场 ─── */
+    const expObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        el.classList.add('exp-gsap');
+
+        // 按卡片序号错开
+        const numEl = el.querySelector('.exp-num');
+        const idx = numEl ? parseInt(numEl.textContent) - 1 : 0;
+
+        const logoWrap = el.querySelector('.exp-logo-wrap');
+        const company = el.querySelector('.exp-company');
+        const role    = el.querySelector('.exp-role');
+        const desc    = el.querySelector('.exp-desc');
+        const year    = el.querySelector('.exp-year');
+        const tags    = el.querySelectorAll('.exp-tag');
+
+        const tl = gsap.timeline({ delay: idx * 0.15 });
+
+        // Logo 区 — 从上滑入
+        if (logoWrap) tl.from(logoWrap, {
+          y: 28, autoAlpha: 0, duration: 0.5, ease: 'power3.out'
+        }, 0);
+
+        // 公司名 — 向上浮现
+        if (company) tl.from(company, {
+          y: 18, autoAlpha: 0, duration: 0.4, ease: 'power3.out'
+        }, 0.1);
+
+        // 职位 — 跟随出现
+        if (role) tl.from(role, {
+          y: 12, autoAlpha: 0, duration: 0.35, ease: 'power3.out'
+        }, 0.2);
+
+        // 描述文字 — 区块淡入
+        if (desc) tl.from(desc, {
+          y: 20, autoAlpha: 0, duration: 0.5, ease: 'power3.out'
+        }, 0.32);
+
+        // 标签 — staggered 弹入
+        if (tags.length) tl.from(tags, {
+          y: 12, autoAlpha: 0, scale: 0.88,
+          duration: 0.38, stagger: 0.06, ease: 'back.out(1.4)'
+        }, 0.52);
+
+        // 年份 — 静默浮现
+        if (year) tl.from(year, {
+          autoAlpha: 0, duration: 0.5, ease: 'power2.out'
+        }, 0.55);
+
+        expObserver.unobserve(el);
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
+
+    document.querySelectorAll('.exp-item').forEach(el => {
+      expObserver.observe(el);
+    });
+
+    /* ─── GSAP: 教育经历卡片逐元素入场 ─── */
+    const eduObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        el.classList.add('edu-gsap');
+
+        // 按卡片 DOM 顺序错开
+        const allEduItems = [...document.querySelectorAll('.edu-item')];
+        const idx = allEduItems.indexOf(el);
+
+        const logo   = el.querySelector('.edu-logo');
+        const year   = el.querySelector('.edu-year');
+        const school = el.querySelector('.edu-school');
+        const degree = el.querySelector('.edu-degree');
+        const desc   = el.querySelector('.edu-desc');
+
+        const tl = gsap.timeline({ delay: idx * 0.15 });
+
+        // 卡片矩形框 — 微缩放 + 边框浮现
+        tl.from(el, {
+          scale: 0.94, autoAlpha: 0, duration: 0.6, ease: 'power3.out'
+        }, 0);
+
+        // Logo — 从下方浮入
+        if (logo) tl.from(logo, {
+          y: 32, autoAlpha: 0, duration: 0.55, ease: 'power3.out'
+        }, 0);
+
+        // 年份 — 静默浮现
+        if (year) tl.from(year, {
+          autoAlpha: 0, duration: 0.45, ease: 'power2.out'
+        }, 0.1);
+
+        // 学校名 — 向上滑入
+        if (school) tl.from(school, {
+          y: 18, autoAlpha: 0, duration: 0.4, ease: 'power3.out'
+        }, 0.15);
+
+        // 学位 — 跟随出现
+        if (degree) tl.from(degree, {
+          y: 14, autoAlpha: 0, duration: 0.38, ease: 'power3.out'
+        }, 0.25);
+
+        // 描述文字 — 区块淡入
+        if (desc) tl.from(desc, {
+          y: 22, autoAlpha: 0, duration: 0.55, ease: 'power3.out'
+        }, 0.4);
+
+        eduObserver.unobserve(el);
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
+
+    document.querySelectorAll('.edu-item').forEach(el => {
+      eduObserver.observe(el);
+    });
+    const titleObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          // 找到该 section 内的副标题和主标题
+          const label = entry.target.querySelector('.section-label');
+          const title = entry.target.querySelector('.section-title');
+          if (label) label.classList.add('reveal-up');
+          if (title) title.classList.add('reveal-up');
+          titleObserver.unobserve(entry.target); // 只触发一次
+        }
+      });
+    }, { threshold: 0.2, rootMargin: '0px 0px -60px 0px' });
+
+    document.querySelectorAll('.section-header').forEach(header => {
+      titleObserver.observe(header);
     });
 
     /* ─── Active nav highlight ─── */
@@ -1629,7 +1937,8 @@
 
         cardData.forEach((data, index) => {
           const card = document.createElement('a');
-          card.href = '#';
+          // S17e 项目（index === 1）跳转到详情页
+          card.href = (index === 1) ? 's17e.html' : '#';
           card.className = 'proj-card';
           card.dataset.index = index;
 
