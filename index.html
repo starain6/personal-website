@@ -760,11 +760,19 @@
     .proj-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      grid-auto-rows: 440px;
-      gap: 26px;
+      grid-auto-rows: auto;
+      column-gap: 26px;
+      row-gap: 26px;
       max-width: 1240px;
       margin: 0 auto;
+      align-items: start;
     }
+
+    /* 行高节奏 — 每行一个"波段"，拉开纵向层次 */
+    .proj-card.ph-hero { height: clamp(320px, 33vw, 560px); }
+    .proj-card.ph-a    { height: clamp(300px, 28.5vw, 480px); }
+    .proj-card.ph-b    { height: clamp(260px, 24vw, 400px); }
+    .proj-card.ph-c    { height: clamp(280px, 26vw, 440px); }
 
     .proj-card {
       position: relative;
@@ -777,11 +785,17 @@
       border: 1px solid rgba(0, 0, 0, 0.08);
       opacity: 0;
       transform: translateY(28px);
+      filter: brightness(0.5) saturate(0.85);
       transition:
         opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
         transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.45s ease,
         border-color 0.4s ease,
         box-shadow 0.5s ease;
+    }
+    /* S17e 通栏卡保持全亮 */
+    .proj-card.is-full {
+      filter: brightness(1) saturate(1);
     }
     .proj-card.visible {
       opacity: 1;
@@ -790,7 +804,8 @@
     .proj-card:hover {
       border-color: rgba(0, 0, 0, 0.28);
       box-shadow: 0 12px 44px rgba(0, 0, 0, 0.45);
-      transform: translateY(-4px);
+      transform: scale(1.04);
+      filter: brightness(1) saturate(1);
     }
 
     /* 宽窄交替：每行两张，宽卡跨 3 列、窄卡跨 2 列，左右互换 */
@@ -833,13 +848,22 @@
       z-index: 3;
     }
     .proj-card-name {
-      font-family: 'Microsoft YaHei', sans-serif;
+      font-family: var(--font-display);
       font-size: 16px;
       font-weight: 700;
       letter-spacing: -0.01em;
-      color: #14141e;
+      text-transform: uppercase;
+      color: rgba(20, 20, 30, 0.8);
       line-height: 1.3;
-      margin: 0 0 6px;
+      margin: 0 0 5px;
+    }
+    .proj-card-sub {
+      font-family: 'Microsoft YaHei', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      color: rgba(20, 20, 30, 0.48);
+      margin: 0 0 7px;
     }
     .proj-card-type {
       font-family: 'Microsoft YaHei', sans-serif;
@@ -908,24 +932,35 @@
 
     /* 响应式 */
     @media (max-width: 1100px) {
-      .proj-grid { grid-auto-rows: 300px; }
+      .proj-card.ph-hero { height: 380px; }
+      .proj-card.ph-a    { height: 340px; }
+      .proj-card.ph-b    { height: 300px; }
+      .proj-card.ph-c    { height: 320px; }
     }
 
     @media (max-width: 900px) {
       .proj-grid {
         grid-template-columns: 1fr;
-        grid-auto-rows: 300px;
-        gap: 20px;
+        column-gap: 20px;
+        row-gap: 20px;
       }
       .proj-card.is-wide,
       .proj-card.is-narrow,
       .proj-card.is-full { grid-column: 1 / -1; }
+      .proj-card.ph-hero,
+      .proj-card.ph-a,
+      .proj-card.ph-b,
+      .proj-card.ph-c { height: 320px; }
     }
 
     @media (max-width: 640px) {
-      .proj-grid { grid-auto-rows: 270px; }
+      .proj-card.ph-hero,
+      .proj-card.ph-a,
+      .proj-card.ph-b,
+      .proj-card.ph-c { height: 270px; }
+      .proj-grid { row-gap: 20px; }
       .proj-grid-head { top: 18px; right: 18px; }
-      .proj-card-name { font-size: 14.5px; }
+      .proj-card-name { font-size: 14px; }
       .proj-card-info { padding: 34px 18px 16px; }
     }
 
@@ -1721,11 +1756,37 @@
       const grid = document.getElementById('projGrid');
       if (!grid) return;
 
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // 瓷砖卡片入场观察器：同批次进入视口的卡片按序错峰"贴上"（大→小回压，无位移）
+      const tileObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+          if (!entry.isIntersecting) return;
+          const el = entry.target;
+          tileObserver.unobserve(el);
+          el.style.transition = 'none'; // GSAP 接管期间禁用 CSS 过渡
+          const tilt = (Math.random() < 0.5 ? -1 : 1) * (0.5 + Math.random() * 0.7); // 随机小角度，贴上去更自然
+          gsap.set(el, { autoAlpha: 0, scale: 1.08, rotation: tilt, transformOrigin: '50% 50%' });
+          // 柔和贴上：透明度先亮起，缩放/角度用长缓出曲线滑顺落位
+          gsap.timeline({
+            delay: i * 0.14, // 同批次错峰
+            onComplete: () => {
+              el.style.transition = '';
+              // 释放 transform/visibility，交还 CSS hover（上浮、阴影）
+              gsap.set(el, { clearProps: 'transform,visibility' });
+            }
+          })
+            .to(el, { autoAlpha: 1, duration: 0.32, ease: 'power1.out' }, 0)
+            .to(el, { scale: 1, rotation: 0, duration: 0.95, ease: 'power3.out' }, 0);
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
       const cardData = [
         {
           category: 'vivo',
           type: 'vivo · 2022-2023',
           name: 'vivo S17e<br>CMF 工艺设计',
+          sub: 'COLOR CRAFT & FINISH DESIGN',
           desc: '负责塑胶外观部件的工艺设计与开发。主导前期打样，实现金属漆面、电镀镭雕等工艺方案；通过调节油漆银粉、电镀膜厚提升中框金属质感；配合电铸模加工实现精密刻纹效果；解决跌落掉漆、耐磨等可靠性问题。',
           badges: ['金属漆', '电镀镭雕', 'NCVM', '精密刻纹'],
           image: 'vivo-s17e-product.png',
@@ -1737,6 +1798,7 @@
           category: 'vivo',
           type: 'vivo · 2023-2024',
           name: 'vivo Y18<br>CMF 系统工程',
+          sub: 'CMF SYSTEM ENGINEERING',
           desc: '完成工艺评审，针对电池盖、装饰圈、中框等外观件提出整机工艺方案；完成胶印、电镀、染色等工艺验证与叠层评估；输出 CMF 评估报告，在降本增效背景下保证纹理质感及油墨效果。',
           badges: ['工艺方案', '复合板材', '染色工艺', '光学镀膜'],
           image: 'vivo-y18-2.png',
@@ -1748,6 +1810,7 @@
           category: 'vivo',
           type: 'vivo · 2025',
           name: 'vivo Y31d<br>CMF 工艺设计',
+          sub: 'COLOR CRAFT & FINISH DESIGN',
           desc: '负责电池盖及金属外观件的工艺设计与开发。主导前期打样，通过色粉、砂型及 CNC 工序调整保证金属效果；提出造型降本方案减少加工时间；解决量产中刀纹、锯齿等外观问题，输出阳极工艺参数锁定量产。',
           badges: ['结构色纹', '阳极氧化', '铝合金', '曲面造型'],
           image: 'vivo-y31d-product.png',
@@ -1759,6 +1822,7 @@
           category: 'meituan',
           type: '美团 · 2021',
           name: '共享出行<br>智能硬件设计',
+          sub: 'Shared mobility & smart hardware design',
           desc: '参与共享单车、共享电单车、共享头盔等智能硬件产品的工业设计，输出 2D 手绘方案；根据 G 端需求完成防站人脚垫、靠背等配件的改良优化。',
           badges: ['智能硬件', '共享出行', '2D 手绘'],
           image: 'meituan-product-2.png',
@@ -1769,6 +1833,7 @@
           category: 'personal',
           type: '个人项目 · 2022',
           name: '概念手机设计',
+          sub: 'Concept Phone Design',
           desc: '将相机机械变焦操作迁移到手机上，建立用户感知连接作为产品惊喜点；多镜头整合于单镜片增加整体感，采用铝合金阳极氧化工艺，以 TPU 橙红色滑钮作色彩点缀。',
           badges: ['概念设计', '铝合金阳极氧化', '机械变焦'],
           image: 'concept-phone-2.png',
@@ -1779,39 +1844,53 @@
           category: 'personal',
           type: '个人项目 · 2022',
           name: 'AI 概念手机设计',
+          sub: 'AI Concept Phone',
           desc: '在手机背部融合低功耗 LED 屏幕展示 AI 状态，作为用户与 AI 交流的窗口；采用抛光不锈钢 + LED 拼接形成未来复古风格；中框背盖一体不锈钢 CNC 成型，拼接 3D AG 磨砂玻璃。',
           badges: ['AI 概念', 'LED 显示', '不锈钢 CNC', '自然语言'],
           image: 'ai-phone-concept-2.png',
           imageAlt: 'AI 手机概念设计图',
-          imgScale: 120,
-          imgShift: '-18% 0 0 0',
-          imgPos: 'center bottom'
+          imgScale: 110,
+          imgShift: '0 0 0 -5%',
+          imgPos: 'center bottom',
+          imgAnchor: 'bottom'
         },
         {
           category: 'school',
           type: '校企合作 · 2020-2021',
           name: '工业纺织卷绕机设计',
+          sub: 'Industrial textile winding machine',
           desc: '负责外观设计。结合工业设备使用场景与人机工程学，在满足功能需求前提下优化整机造型与视觉语言，提升产品工业美感与品牌辨识度。',
           badges: ['工业设计', '外观设计', '人机工程', '校企合作'],
           image: 'textile-winder-3.png',
           imageAlt: '工业纺织卷绕机设计图',
           imgScale: 120,
-          imgShift: '0 0 0 -35%'
+          imgShift: '5% 0 0 -35%'
         }
       ];
 
-      // S17e 通栏独占一行；Y18(窄)+Y31d(宽) → 美团(宽)+概念手机(窄) → AI概念手机(窄)+卷绕机(宽)
-      const sizePattern = ['is-full', 'is-narrow', 'is-wide', 'is-wide', 'is-narrow', 'is-narrow', 'is-wide'];
+      // 排版节奏：横向锯齿（宽窄左右交替）+ 纵向波段（每行不同高度）
+      // 行结构：①S17e通栏(主卡,高) ②Y18窄+Y31d宽(次高) ③美团宽+概念手机窄(镜像,紧凑) ④AI窄+卷绕机宽(中高)
+      const layout = [
+        { card: 0, size: 'is-full',   ph: 'ph-hero' },
+        { card: 1, size: 'is-narrow', ph: 'ph-a' }, { card: 2, size: 'is-wide', ph: 'ph-a' },
+        { card: 3, size: 'is-wide',   ph: 'ph-b' }, { card: 4, size: 'is-narrow', ph: 'ph-b' },
+        { card: 5, size: 'is-narrow', ph: 'ph-c' }, { card: 6, size: 'is-wide', ph: 'ph-c' }
+      ];
 
-      cardData.forEach((data, index) => {
+      layout.forEach((item, index) => {
+        const size = item.size;
+
+        const data = cardData[item.card];
         const card = document.createElement('a');
         // S17e 项目（index === 0）跳转到详情页
-        card.href = (index === 0) ? 's17e.html' : '#';
-        card.className = 'proj-card ' + (sizePattern[index] || 'is-narrow');
+        card.href = (item.card === 0) ? 's17e.html' : '#';
+        card.className = 'proj-card ' + size + ' ' + item.ph;
 
         // imgPos → object-position 对齐；imgShift → 负 margin 出血；imgScale → 图片盒放大（超出卡片，被 overflow 裁切）
+        // imgAnchor:'bottom' → 图片盒以下边缘为基准向上生长，保证内容底边永远紧贴卡片底边（不受视口/卡高变化影响）
         const imgStyle = [
           data.imgPos ? `object-position:${data.imgPos}` : '',
+          data.imgAnchor === 'bottom' ? 'top:auto;bottom:0;' : '',
           data.imgScale ? `width:${data.imgScale}%;height:${data.imgScale}%;` : '',
           data.imgShift ? `margin:${data.imgShift}` : ''
         ].filter(Boolean).join(';');
@@ -1819,7 +1898,8 @@
         card.innerHTML = `
           <img class="proj-card-img" src="${data.image}" alt="${data.imageAlt || ''}" loading="lazy"${imgStyle ? ` style="${imgStyle}"` : ''}>
           <div class="proj-grid-head">
-            <div class="proj-card-name">${data.name}</div>
+            <div class="proj-card-name">${data.sub || ''}</div>
+            <div class="proj-card-sub">${data.name}</div>
             <div class="proj-card-type">${data.type}</div>
           </div>
           <div class="proj-card-info">
@@ -1829,9 +1909,32 @@
         `;
 
         grid.appendChild(card);
-        // 复用页面既有 reveal 观察器，滚动到视口时上浮入场
-        if (typeof revealObserver !== 'undefined') revealObserver.observe(card);
+        // 瓷砖卡片入场：GSAP 弹出 + 同批次错峰（替代通用 reveal，避免 CSS transition 干扰 GSAP）
+        if (typeof gsap === 'undefined' || reduceMotion) {
+          if (typeof revealObserver !== 'undefined') revealObserver.observe(card);
+          return;
+        }
+        tileObserver.observe(card);
       });
+
+      /* ─── 随机点亮循环：暗态卡片随机亮起再回落 ─── */
+      if (!reduceMotion) {
+        const glowCards = Array.from(grid.children).filter(c => c.tagName === 'A' && !c.classList.contains('is-full'));
+        const scheduleGlow = () => {
+          setTimeout(() => {
+            const pool = glowCards.filter(c => !c.matches(':hover'));
+            if (pool.length) {
+              const el = pool[Math.floor(Math.random() * pool.length)];
+              el.style.transition = 'none'; // GSAP 接管 filter 期间禁用 CSS 过渡，避免双重插值
+              gsap.timeline({ onComplete: () => { el.style.transition = ''; gsap.set(el, { clearProps: 'filter' }); } })
+                .to(el, { filter: 'brightness(1) saturate(1)', duration: 0.38, ease: 'power2.out' })
+                .to(el, { filter: 'brightness(0.5) saturate(0.85)', duration: 0.7, ease: 'power2.inOut' }, '+=0.3');
+            }
+            scheduleGlow();
+          }, 1800 + Math.random() * 1800);
+        };
+        scheduleGlow();
+      }
     })();
 
     /* ─── Hero Typewriter Animation ─── */
